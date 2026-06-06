@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZENCHE</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif; background: #000; }
+    :root { --key-color: #8000FF; --key-rgb: 128, 0, 255; }
+
+    /* ===== HERO ===== */
+    #hero {
+      position: relative;
+      width: 100%;
+      height: 75vh;
+      background: #000;
+      overflow: hidden;
+    }
+
+    #typing-wrap {
+      position: absolute;
+      top: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      color: #fff;
+      font-size: 22px;
+      letter-spacing: 0.02em;
+      font-family: Helvetica, 'Helvetica Neue', Arial, sans-serif;
+      text-transform: uppercase;
+      z-index: 10;
+      transition: opacity 0.45s ease;
+    }
+
+    #cursor {
+      display: inline-block;
+      width: 1px;
+      height: 1em;
+      background: #fff;
+      vertical-align: text-bottom;
+      margin-left: 2px;
+      animation: blink 0.7s step-end infinite;
+    }
+
+    @keyframes blink { 50% { opacity: 0; } }
+
+    #logo-wrap {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 0 24px 24px;
+    }
+
+    #logo-wrap svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    #logo-wrap svg path {
+      fill: var(--key-color);
+      transition: fill 0.4s ease;
+    }
+
+    #logo-mobile {
+      display: none;
+      width: 100%;
+      height: auto;
+    }
+
+    /* ===== DIVIDER ===== */
+    #divider {
+      width: 100%;
+      height: 36px;
+      background: #3D4E34;
+    }
+
+    /* ===== GRID SECTION ===== */
+    #grid-section {
+      background: var(--key-color);
+      padding: 0 0 60px;
+      min-height: 100vh;
+      transition: background 0.4s ease;
+    }
+
+    .inner {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* ===== STICKY TAB BAR ===== */
+    #tab-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--key-color);
+      padding: 20px 0 14px;
+      transition: background 0.4s ease;
+    }
+
+    /* ===== TABS ===== */
+    #tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      padding: 7px 18px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1.5px solid rgba(0, 0, 0, 0.4);
+      background: transparent;
+      color: rgba(0, 0, 0, 0.3);
+      letter-spacing: 0.04em;
+      font-family: Helvetica, 'Helvetica Neue', Arial, sans-serif;
+      text-transform: uppercase;
+      transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
+    }
+
+    .tab:hover {
+      color: rgba(0, 0, 0, 0.55);
+      border-color: rgba(0, 0, 0, 0.55);
+    }
+
+    .tab.active {
+      background: rgba(0, 0, 0, 0.85);
+      color: rgba(255, 255, 255, 0.9);
+      border-color: transparent;
+    }
+
+    /* ===== CARD GRID ===== */
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 21px;
+    }
+
+    @keyframes cardReveal {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== CARD ===== */
+    .card {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
+      cursor: pointer;
+      border-radius: 3px;
+      background: #d8d8d8;
+      opacity: 0;
+      transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                  box-shadow 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .card.visible {
+      animation: cardReveal 0.85s ease forwards;
+    }
+
+    .card:hover {
+      transform: translateY(-8px) scale(1.015);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.28), 0 8px 16px rgba(0, 0, 0, 0.18);
+    }
+
+    .card img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: opacity 0.35s ease;
+      display: block;
+    }
+
+    .card .img-front { opacity: 1; z-index: 1; }
+    .card .img-back  { opacity: 0; z-index: 2; }
+    .card:hover .img-back { opacity: 1; }
+
+    /* ===== MODAL ===== */
+    #modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.82);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+    }
+
+    #modal.open { display: flex; }
+
+    #modal-inner {
+      display: flex;
+      gap: 16px;
+      max-width: 880px;
+      width: 100%;
+      max-height: 88vh;
+    }
+
+    #modal-inner img {
+      flex: 1;
+      min-width: 0;
+      width: 50%;
+      max-height: 88vh;
+      object-fit: contain;
+      border-radius: 3px;
+    }
+
+    @media (max-width: 768px) {
+      /* Logo: 모바일 버전 */
+      #logo-wrap svg { display: none; }
+      #logo-mobile { display: block; }
+
+      /* Grid: 1열 */
+      #grid { grid-template-columns: repeat(1, 1fr); }
+
+      /* 호버 효과 제거 */
+      .card { transition: none; }
+      .card.visible { animation: cardReveal 0.85s ease forwards; }
+      .card:hover { transform: none; box-shadow: none; }
+      .card:hover .img-back { opacity: 0; }
+
+      /* 모달: 상세 이미지만 표시 */
+      #modal-front { display: none; }
+      #modal-back { width: 90vw; max-height: 85vh; }
+    }
+  </style>
+</head>
+<body>
+
+<section id="hero">
+  <div id="typing-wrap">
+    <span id="typing-text"></span><span id="cursor"></span>
+  </div>
+  <div id="logo-wrap">
+    <img id="logo-mobile" src="zenche%20logo-mo.svg" alt="ZENCHE">
+    <svg width="1791" height="300" viewBox="0 0 1791 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M286.525 75.2862L140.865 216.55H288.103V288.182H0V226.501L148.837 82.4593H11.5489V10.8281H286.525V75.3062V75.2862ZM539.881 288.202H305.087V10.8281H539.881V82.4593H403.392V114.309H535.506V182.743H403.392V216.57H539.881V288.202ZM765.505 143.341V10.8281H864.989V288.202H775.055L661.245 153.691V288.202H562.939V10.8281H652.473L765.485 143.341H765.505ZM1328.52 288.202H1230.24V10.8281H1328.52V104.738H1433.58V10.8281H1532.27V288.202H1433.58V192.294H1328.52V288.202ZM1790.12 288.202H1555.33V10.8281H1790.12V82.4593H1653.63V114.309H1785.74V182.743H1653.63V216.57H1790.12V288.202Z"/>
+      <path d="M1127.74 174.392H1215.73C1205.14 248.481 1145.96 297.294 1053.43 298.993C1052.63 299.013 1051.77 299.013 1050.93 299.013C1050.09 299.013 1049.25 299.013 1048.45 298.993C945.971 297.115 882.452 237.472 882.452 149.716C882.452 61.9605 946.031 0.459558 1050.35 0H1051.53C1147.36 0.419597 1207.14 51.7503 1216.23 128.656H1128.94C1119.24 98.2256 1089.17 76.0469 1053.57 76.0469C1010.13 76.0469 972.905 105.279 972.905 149.816C972.905 194.353 1010.13 223.565 1053.57 223.565C1087.81 223.565 1116.95 203.025 1127.74 174.392Z"/>
+    </svg>
+  </div>
+</section>
+
+<div id="divider"></div>
+
+<section id="grid-section">
+  <div id="tab-bar">
+    <div class="inner">
+      <div id="tabs">
+        <button class="tab active" data-cat="all">All Random</button>
+        <button class="tab" data-cat="art">Art</button>
+        <button class="tab" data-cat="business">Business</button>
+        <button class="tab" data-cat="lifeetc">Life&amp;etc</button>
+        <button class="tab" data-cat="korean">Korean</button>
+      </div>
+    </div>
+  </div>
+  <div class="inner" style="padding-top: 16px;">
+    <div id="grid"></div>
+  </div>
+</section>
+
+<div id="modal">
+  <div id="modal-inner">
+    <img id="modal-front" src="" alt="">
+    <img id="modal-back"  src="" alt="">
+  </div>
+</div>
+
+<script>
+// Typing effect
+const phrases = [
+  'Glossary for lazy hipsters',
+  'Itsabillity is also an ability.',
+  'If you know, you know.',
+  "zenche means 'BEING a SNOB' in Korean.",
+];
+const typingEl   = document.getElementById('typing-text');
+const typingWrap = document.getElementById('typing-wrap');
+let pIdx = 0, cIdx = 0;
+
+function typeChar() {
+  const phrase = phrases[pIdx];
+  cIdx++;
+  typingEl.textContent = phrase.slice(0, cIdx);
+  if (cIdx < phrase.length) {
+    setTimeout(typeChar, 65);
+  } else {
+    // 완성 후 1초 유지 → 페이드아웃 → 다음 문장
+    setTimeout(() => {
+      typingWrap.style.opacity = '0';
+      setTimeout(() => {
+        cIdx = 0;
+        pIdx = (pIdx + 1) % phrases.length;
+        typingEl.textContent = '';
+        typingWrap.style.opacity = '1';
+        setTimeout(typeChar, 150);
+      }, 450);
+    }, 1000);
+  }
+}
+setTimeout(typeChar, 1000);
+
+// Theme colors per category
+const COLORS = {
+  all:      '#8000FF',
+  art:      '#D31200',
+  business: '#518FA3',
+  lifeetc:  '#75815D',
+  korean:   '#C6B279',
+};
+
+const COLORS_RGB = {
+  all:      '128, 0, 255',
+  art:      '211, 18, 0',
+  business: '81, 143, 163',
+  lifeetc:  '117, 129, 93',
+  korean:   '198, 178, 121',
+};
+
+// Card data — front (cover) and back (detail) images
+const CARDS = [
+  // Art 1–7
+  { id: 1,    front: '1-1-avantgarde.png',    back: '1-2-avantgarde.png',    cat: 'art' },
+  { id: 2,    front: '2-1-macguffin.png',      back: '2-2-macguffin.png',      cat: 'art' },
+  { id: 3,    front: '3-1-miseenscene.png',    back: '3-2-miseenscene.png',    cat: 'art' },
+  { id: 4,    front: '4-1-hautecouture.png',   back: '4-2-hautecouture.png',   cat: 'art' },
+  { id: 5,    front: '5-1-catharsis.png',      back: '5-2-catharsis.png',      cat: 'art' },
+  { id: 6,    front: '6-1-kitsch.png',         back: '6-2-kitsch.png',         cat: 'art' },
+  { id: 7,    front: '7-1-reportage.png',      back: '7-2-reportage.png',      cat: 'art' },
+  // Business 8–21
+  { id: 8,    front: '8-1-agile.png',          back: '8-2-agile.png',          cat: 'business' },
+  { id: 9,    front: '9-1-agenda.png',         back: '9-2-agenda.png',         cat: 'business' },
+  { id: 10,   front: '10-1-align.png',         back: '10-2-align.png',         cat: 'business' },
+  { id: 11,   front: '11-1-backlog.png',       back: '11-2-backlog.png',       cat: 'business' },
+  { id: 12,   front: '12-1-consensus.png',     back: '12-2-consensus.png',     cat: 'business' },
+  { id: 13,   front: '13-1-insight.png',       back: '13-2-insight.png',       cat: 'business' },
+  { id: 14,   front: '14-1-lean.png',          back: '14-2-lean.png',          cat: 'business' },
+  { id: 15,   front: '15-1-leverage.png',      back: '15-2-leverage.png',      cat: 'business' },
+  { id: 16,   front: '16-1-milestone.png',     back: '16-2-milestone.png',     cat: 'business' },
+  { id: 17,   front: '17-1-mvp.png',           back: '17-2-mvp.png',           cat: 'business' },
+  { id: 18,   front: '18-1-naive.png',         back: '18-2-naive.png',         cat: 'business' },
+  { id: 19,   front: '19-1-pivot.png',         back: '19-2-pivot.png',         cat: 'business' },
+  { id: 20,   front: '20-1-resource.png',      back: '20-2-resource.png',      cat: 'business' },
+  { id: 21,   front: '21-1-sprint.png',        back: '21-2-sprint.png',        cat: 'business' },
+  // Life&etc 22–35 (card 22 has two entries: aporia + decadence)
+  { id: 22,   front: '22-1-aporia.png',        back: '22-2-aporia.png',        cat: 'lifeetc' },
+  { id: 22.5, front: '22-1-decadence.png',     back: '22-2-decadence.png',     cat: 'lifeetc' },
+  { id: 23,   front: '23-1-diaspora.png',      back: '23-2-diaspora.png',      cat: 'lifeetc' },
+  { id: 24,   front: '24-1-ephemera.png',      back: '24-2-ephemera.png',      cat: 'lifeetc' },
+  { id: 25,   front: '25-1-gestalt.png',       back: '25-2-gestalt.png',       cat: 'lifeetc' },
+  { id: 26,   front: '26-1-hegemony.png',      back: '26-2-hegemony.png',      cat: 'lifeetc' },
+  { id: 27,   front: '27-1-ideology.png',      back: '27-2-ideology.png',      cat: 'lifeetc' },
+  { id: 28,   front: '28-1-melancholy.png',    back: '28-2-melancholy.png',    cat: 'lifeetc' },
+  { id: 29,   front: '29-1-meta.png',          back: '29-2-meta.png',          cat: 'lifeetc' },
+  { id: 30,   front: '30-1-nihilism.png',      back: '30-2-nihilism.png',      cat: 'lifeetc' },
+  { id: 31,   front: '31-1-paradigm.png',      back: '31-2-paradigm.png',      cat: 'lifeetc' },
+  { id: 32,   front: '32-1-schadenfreude.png', back: '32-2-schadenfreude.png', cat: 'lifeetc' },
+  { id: 33,   front: '33-1-schrodinger.png',   back: '33-2-schrodinger.png',   cat: 'lifeetc' },
+  { id: 34,   front: '34-1-simulacre.png',     back: '34-2-simulacre.png',     cat: 'lifeetc' },
+  { id: 35,   front: '35-1-snob.png',          back: '35-2-snob.png',          cat: 'lifeetc' },
+  // Korean 36–40 (38 has no -2 file; use 38-1-1.png as back)
+  { id: 36,   front: '36-1.png',               back: '36-2.png',               cat: 'korean' },
+  { id: 37,   front: '37-1.png',               back: '37-2.png',               cat: 'korean' },
+  { id: 38,   front: '38-1.png',               back: '38-1-1.png',             cat: 'korean' },
+  { id: 39,   front: '39-1.png',               back: '39-2.png',               cat: 'korean' },
+  { id: 40,   front: '40-1.png',               back: '40-2.png',               cat: 'korean' },
+];
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function setColor(cat) {
+  document.documentElement.style.setProperty('--key-color', COLORS[cat]);
+  document.documentElement.style.setProperty('--key-rgb', COLORS_RGB[cat]);
+}
+
+// 스크롤 방향 추적
+let scrollDir = 'down';
+let _lastScrollY = window.scrollY;
+window.addEventListener('scroll', () => {
+  scrollDir = window.scrollY >= _lastScrollY ? 'down' : 'up';
+  _lastScrollY = window.scrollY;
+}, { passive: true });
+
+// Scroll reveal — 아래로 스크롤: 행 단위 애니메이션 / 위로 스크롤: 즉시 표시
+const revealObserver = new IntersectionObserver((entries) => {
+  const toReveal = entries.filter(e => e.isIntersecting && !e.target.classList.contains('visible'));
+  if (!toReveal.length) return;
+
+  if (scrollDir === 'up') {
+    // 위로 올라갈 때: 모션 없이 즉시 표시
+    toReveal.forEach(entry => {
+      const card = entry.target;
+      card.style.animation = 'none';
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+      card.classList.add('visible');
+      revealObserver.unobserve(card);
+    });
+    return;
+  }
+
+  // 아래로 스크롤: top 좌표로 행 묶어서 동시 등장
+  const rows = {};
+  toReveal.forEach(entry => {
+    const key = Math.round(entry.boundingClientRect.top / 8) * 8;
+    if (!rows[key]) rows[key] = [];
+    rows[key].push(entry.target);
+  });
+
+  Object.keys(rows).sort((a, b) => +a - +b).forEach((key, rowIdx) => {
+    rows[key].forEach(card => {
+      card.style.animationDelay = `${rowIdx * 0.1}s`;
+      card.classList.add('visible');
+      revealObserver.unobserve(card);
+    });
+  });
+}, { threshold: 0.05, rootMargin: '0px 0px -10px 0px' });
+
+const gridEl = document.getElementById('grid');
+function renderGrid(cat) {
+  const list = cat === 'all' ? shuffle(CARDS) : CARDS.filter(c => c.cat === cat);
+  gridEl.innerHTML = '';
+  list.forEach((card) => {
+    const el = document.createElement('div');
+    el.className = 'card';
+
+    const front = new Image();
+    front.className = 'img-front';
+    front.src = card.front;
+    front.alt = '';
+    front.loading = 'lazy';
+
+    const back = new Image();
+    back.className = 'img-back';
+    back.src = card.back;
+    back.alt = '';
+    back.loading = 'lazy';
+
+    el.appendChild(front);
+    el.appendChild(back);
+    el.addEventListener('click', () => openModal(card.front, card.back));
+    gridEl.appendChild(el);
+    revealObserver.observe(el);
+  });
+}
+
+// Tabs
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const cat = btn.dataset.cat;
+    setColor(cat);
+    renderGrid(cat);
+  });
+});
+
+// Modal
+const modal    = document.getElementById('modal');
+const mFront   = document.getElementById('modal-front');
+const mBack    = document.getElementById('modal-back');
+
+function openModal(front, back) {
+  mFront.src = front;
+  mBack.src  = back;
+  modal.classList.add('open');
+}
+
+modal.addEventListener('click', e => {
+  if (e.target === modal) modal.classList.remove('open');
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') modal.classList.remove('open');
+});
+
+// Init
+renderGrid('all');
+</script>
+</body>
+</html>
