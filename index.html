@@ -79,7 +79,7 @@
     /* ===== DIVIDER ===== */
     #divider {
       width: 100%;
-      height: 36px;
+      height: 50px;
       background: #3D4E34;
     }
 
@@ -221,6 +221,25 @@
       border-radius: 3px;
     }
 
+    /* ===== CUSTOM CURSOR ===== */
+    @media (pointer: fine) {
+      * { cursor: none !important; }
+      #custom-cursor { display: block; }
+    }
+
+    #custom-cursor {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 999999;
+      width: 32px;
+      height: 33px;
+      transform: translate(-200px, -200px);
+      will-change: transform;
+      display: none;
+    }
+
     @media (max-width: 768px) {
       /* 상단 텍스트: 줄바꿈 + 가운데 정렬 */
       #typing-wrap {
@@ -294,6 +313,12 @@
     <img id="modal-front" src="" alt="">
     <img id="modal-back"  src="" alt="">
   </div>
+</div>
+
+<div id="custom-cursor">
+  <svg viewBox="0 0 129 132" xmlns="http://www.w3.org/2000/svg">
+    <path id="cursor-path" d="M32.8008 131.248L8.20742e-05 -8.20742e-05L128.26 35.7886L32.8008 131.248Z"/>
+  </svg>
 </div>
 
 <script>
@@ -513,6 +538,29 @@ document.addEventListener('keydown', e => {
 
 // Init
 renderGrid('all');
+
+// Custom cursor (desktop/mouse only)
+if (window.matchMedia('(pointer: fine)').matches) {
+  const customCursorEl = document.getElementById('custom-cursor');
+  const cursorPathEl   = document.getElementById('cursor-path');
+  const heroSectionEl  = document.getElementById('hero');
+
+  document.addEventListener('mousemove', (e) => {
+    customCursorEl.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+    const heroRect = heroSectionEl.getBoundingClientRect();
+    const inHero = e.clientY >= heroRect.top && e.clientY <= heroRect.bottom;
+    cursorPathEl.setAttribute(
+      'fill',
+      inHero
+        ? getComputedStyle(document.documentElement).getPropertyValue('--key-color').trim()
+        : '#000000'
+    );
+  });
+
+  document.addEventListener('mouseleave', () => {
+    customCursorEl.style.transform = 'translate(-200px, -200px)';
+  });
+}
 </script>
 </body>
 </html>
